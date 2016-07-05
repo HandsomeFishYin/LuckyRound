@@ -1,0 +1,33 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+
+@import "compass/reset";
+*{font-family: "Microsoft YaHei", Arial, sans-serif;}
+$blue-base:#0099ff !default;
+$light-base:#ffffff !default;
+
+.wrapper{
+    width: 500px;
+    margin: 100px auto;
+
+}
+.btns{
+    margin-top: 50px;
+    text-align: center;
+}
+.title{
+    font-size: 50px;
+    text-align: center;
+}
+#play,#stop{
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: $blue-base;
+    cursor: pointer;
+    border-radius: 3px;
+    color: $light-base;
+    margin: 0 10px;
+    &:hover{background-color: rgba($blue-base,0.8)}
+}

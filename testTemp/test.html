@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>canvas 学习</title>
+    <script src="js/jquery-2.1.1.min.js"></script>
+</head>
+
+<body>
+<div class="wrapper">
+    <div class="circleWrapper">
+        <canvas id="circle" width="620" height="620" class=""></canvas>
+        <div class="minute animation done">
+            <div class="hand"></div>
+            <div class="center">点我抽奖</div>
+        </div>
+    </div>
+    <div id="infoBox">
+        <div id="sum"></div>
+        <div id="btnWrapper">
+            <a href="javascript:;">重新开始</a>
+        </div>
+    </div>
+</div>
+
+
+
+
+<style>
+    body{margin:0;padding:0;overflow:hidden;}
+    body{background:#545652;font-family:'microsoft yahei';}
+    html,body{height:100%;width:100%;}
+    .wrapper{width:960px;margin:10px auto;}
+    #btnWrapper{margin-top:10px;}
+    #btnWrapper a{display:inline-block;background:#ac0707;border-radius:3px;color:#fff;text-decoration:none;padding:5px 10px;}
+    #infoBox{float:right;color:#fff;font:16px/1.5 'Microsoft YaHei'}
+    canvas{transition:all 10s;transition-timing-function:cubic-bezier(0.540, -0.025, 0.050, 0.945);transition-timing-function:cubic-bezier(0.540, -0.001, 0.060, 0.9995);}
+
+    .center{transition:all 1s;z-index:1;position:relative;text-align:center;line-height:200px;color:#fff;font-size:20px;box-shadow:inset 0 0 20px rgba(0,0,0,0.2),0 0 25px rgba(0,0,0,0.2);cursor:pointer;display:inline-block;position:absolute;width:200px;height:200px;left:0;top:0;right:0;bottom:0;background:#ac0707;border-radius:200px;margin:auto;}
+    .center:hover{text-shadow:3px 3px 10px rgba(255,255,255,0.5);}
+    .center1:after{display:block;width:100%;height:100%;border-radius:100%;background:#ccc;content:'';position:absolute;left:0;top:0;}
+    .circleWrapper{position:absolute;}
+    /*.btn{position: absolute;left:0;top:0;z-index:100;display:inline-block;width:100px;height:100px;background:#fff;}*/
+    .minute{position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;}
+    .hand{position:absolute;top:0;bottom:0;left:0;right:0;margin:auto;}
+    .hand:before{content:'';position:absolute;bottom:0;left:0;right:0;margin:auto;-webkit-transform-origin:center 100%;-moz-transform-origin:center 100%;-o-transform-origin:center 100%;-ms-transform-origin:center 100%;transform-origin:center 100%;display:inline-block;top:0;width:12px;height:168px;top:-168px;
+        border-top-left-radius: 2px;border-top-right-radius: 2px;background-clip: padding-box;background-color:#fff;
+    }
+    .hand:after{
+        content:'';position: absolute;bottom:0;left:0;right:0;margin:auto;top:0;display:inline-block;border-bottom:12px solid #fff;border-left:6px solid transparent;border-right:6px solid transparent;width:0;height:0;-webkit-transform-origin:center 100%;-moz-transform-origin:center 100%;-o-transform-origin:center 100%;-ms-transform-origin:center 100%;transform-origin:center 100%;top:-346px;
+    }
+    .transition{
+        -webkit-transform:rotate(3600deg);
+        -moz-transform:rotate(3600deg);
+        -o-transform:rotate(3600deg);
+        -ms-transform:rotate(3600deg);
+        transform:rotate(3600deg);
+    }
+</style>
+<script type="text/javascript">
+    var color = ["#eccd7a","#eccd7a","#eccd7a","#eccd7a","#eccd7a","#eccd7a"];
+    var data = [21,5,20,29,5,20];
+    var txt = ['6元', "爆机20", '7元', '5元', '爆机15',"8元"];
+    scoreArea = [];
+    var sum = 0;
+    for(var i=0; i<data.length; i++){
+        scoreArea[i] = 0;
+    }
+    for(var i=0; i<data.length; i++){
+        for(var j=0; j<=i; j++){
+            scoreArea[i] += data[j];
+        }
+    }
+    console.log(scoreArea);
+
+    //var angle = 0;
+    var r = 200;
+    var circleX = circleY = null;
+    var angle = 0;
+    var area = null;
+    var index = null;
+    function drawCircle(circleX, circleY, r){
+        var canvas = document.getElementById("circle");
+        //canvas.setAttribute('width', window.innerWidth);
+        //canvas.setAttribute('height', window.innerHeight);
+        var ctx = canvas.getContext("2d");
+        ctx.lineWidth = 1;
+        var startPoint = 1.5 * Math.PI;
+        var angle = startPoint;
+        var angle1;
+        for(var i=0;i<data.length;i++){
+            ctx.fillStyle = color[i];
+            ctx.strokeStyle = "#ac0707";
+            ctx.moveTo(circleX,circleY);
+            ctx.arc(circleX,circleY,r,startPoint,startPoint-Math.PI*2*(data[i]/100),true);
+            ctx.moveTo(circleX, circleY);
+            ctx.fill();
+            ctx.stroke();
+            startPoint -= Math.PI*2*(data[i]/100);
+        }
+        for(var i=0; i<data.length; i++){
+            angle -= Math.PI*2*(data[i]/100);
+            angle1 = angle + Math.PI*2*(data[i]/100*3/7);
+            ctx.fillStyle = '#ac0707';
+            ctx.font = "40px Microsoft YaHei";
+            var x = 4/7*r*Math.cos(angle1);
+            var y = 4/7*r*Math.sin(angle1);
+            if(txt[i].search('爆机') > -1){
+                ctx.font = '30px Microsoft YaHei';
+                y = 3/8*r*Math.sin(angle1);
+                if(txt[i].search('爆机20') > -1){
+                    x = 6/8*r*Math.cos(angle1);
+                }
+
+            }
+            ctx.fillText(txt[i], x+circleX,y+circleY);
+        }
+        ctx.beginPath();
+        ctx.lineWidth = 10;
+        ctx.arc(circleX, circleY, r,0 , Math.PI*2, true);
+        ctx.stroke();
+        ctx.closePath();
+    }  //绘制canvas
+    drawCircle(310,310, 300);
+
+
+
+
+
+    $(".center").on('click', function(){
+        sum = 0;
+        angle += Math.random()*720+3610;
+        area = angle%360/360*100;
+        console.log(area);
+        for(var i=0; i<scoreArea.length; i++){
+            if(area < scoreArea[i] && i==0){
+                index = 0;
+                break;
+            }
+            if(area > scoreArea[i] && area < scoreArea[i+1]){
+                index = i+1;
+                break;
+            }
+        }
+        // index = i;
+        console.log(index);
+        console.log(txt[index]);
+
+        $('canvas:eq(0)').css(
+            {
+                '-webkit-transform': 'rotate('+ angle + 'deg)',
+                '-moz-transform': 'rotate('+ angle + 'deg)',
+                '-o-transform': 'rotate('+ angle + 'deg)',
+                '-ms-transform': 'rotate('+ angle + 'deg)',
+                'transform': 'rotate('+ angle + 'deg)'
+            }
+        );
+    });
+    $('canvas:eq(0)').bind('webkitTransitionEnd', function(){
+        $('#sum').before('<div class="award">恭喜您中奖 ' + txt[index] + '</div>');
+        toggleBtnWrapper();
+        $('.award').each(function(){
+            sum += parseInt(this.innerText.replace(/\D/g, ''));
+        });
+        $('#sum')[0].innerText = '小计：' + sum;
+    });
+    $('#btnWrapper').click(function(){
+        $('.award').remove();
+        $('#sum').get(0).innerText = '';
+        toggleBtnWrapper();
+    });
+    function toggleBtnWrapper(){
+        if($('.award').length == 0){
+            $('#btnWrapper').hide();
+        }else{
+            $('#btnWrapper').show();
+        }
+    }
+    toggleBtnWrapper();
+</script>
+
+</body>
+</html>

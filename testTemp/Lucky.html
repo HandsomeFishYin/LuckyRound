@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>摇奖转盘</title>
+
+    <link rel="stylesheet" href="stylesheets/Lucky.css"/>
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <!--<script src="js/Lucky.js"></script>-->
+    <style>
+        #piechart1{transition:all 10s;transition-timing-function:cubic-bezier(0.540, -0.025, 0.050, 0.945);transition-timing-function:cubic-bezier(0.540, -0.001, 0.060, 0.9995);}
+         html,body{height:100%;margin:0;padding:0}
+        ul,li{text-indent:0;text-decoration:none;margin:0;padding:0}
+        img{border:0}
+        body{background-color:#ccc;color:#999;font:100%/18px helvetica, arial, sans-serif}
+        #canvasFirework{cursor:crosshair;display:none;left:0;position:absolute;top:0;z-index:20}
+        #header img{width:100%; height:20%;}
+        #bg img{width:100%; height:80%;}
+        audio{position:fixed;display:none;bottom:0;left:0;right:0;width:100%;z-index:5}
+        .en-markup-crop-options div div:first-of-type {
+            margin-left: 0 !important;
+        }
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="arrow"></div>
+    <div id="section1">
+        <div class="piechart">
+            <canvas id="piechart1" width="600" height="600"></canvas>
+        </div>
+    </div>
+    <button id="btnStart">点击开始</button>
+</div>
+
+
+
+
+<script type="text/javascript">
+    var randomNum;  //随机出来1-360的随机数 string
+    var ranNumArr=[];  //随机出来的1-360的随机数数组
+    var arrPush = 0;  //计时器push进数组的标记
+    var arrPop = 0;  //取出计时器数组的标记
+    var nowDeg = 0;   //随机出来1-360的随机数 int
+//    var passDeg = 0;//上一轮随机数来1-360的随机数 int
+    var countDeg; //随机出来1-360的随机数 + 1800
+    var scrollDeg = 0 ; // + =countDeg
+    var scrollCountDeg = 0;  //+=nowDeg
+    var realDeg = 0;
+    var realScroll = 0;
+    var money ;
+    var color = ["#d8210d","#fabe00","#304290","#0099ff","#da4d7d","#2f9425"];
+    var info = ["8元","10元","20元","30元","50元","100元"];
+    var centerX = 300;
+    var centerY = 300;
+    var data = [5,30,15,35,13,2];
+    var canvas = document.getElementById("piechart1");
+    var ctx = canvas.getContext("2d");
+    var startPoint=Math.PI;
+
+    var test1 = 0;  //随机从数据库中取出的0-360的随机数的补角
+
+    function drawCircle(){//绘制扇形
+        for(var i=0;i<data.length;i++){
+            ctx.fillStyle = color[i];
+            ctx.strokeStyle = color[i];
+            ctx.beginPath();
+            ctx.moveTo(300,300);  //x,y,r
+            ctx.arc(300,300,300,startPoint,startPoint-Math.PI*2*(data[i]/100),true);
+            ctx.fill();
+            ctx.stroke();
+            startPoint -= Math.PI*2*(data[i]/100);
+        }
+    }
+    function createCirText(){
+        ctx.font = "Bold 20px Arial"; // 设置字体
+        ctx.textAlign='start';//文本水平对齐方式
+        ctx.textBaseline='middle';//文本垂直方向，基线位置
+        ctx.fillStyle = "#fff";// 设置填充颜色
+        var step = 0;//
+//        debugger;
+        for ( var i = 0; i <data.length; i++) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.translate(centerX,centerY);//平移到圆心
+            var aa = Math.PI*1  -Math.PI*2*(step/100) - Math.PI*(data[i]/100)/1;
+            ctx.rotate( aa); //从时钟15点处开始旋转弧度i*step+step/2
+            step = step + data[i];
+            ctx.fillText(info[i],125,0);
+            ctx.restore();
+        }}
+
+    drawCircle();  //绘制扇形
+    createCirText(); //绘制扇形上的文字
+
+    function getRandom(){
+        $.ajax({
+            url : 'https://www.random.org/integers/?num=1&min=0&max=360&col=1&base=10&format=plain&rnd=new',
+            type : 'get',
+            async: true//使用同步的方式,true为异步方式
+        }).success(function(data){
+            ranNumArr[arrPush] = parseInt(data, 10);
+            arrPush = arrPush +1;
+        });
+    }
+
+
+    $(function(){
+        setInterval(function(){
+            getRandom();
+        },5000);
+
+
+        $("#btnStart").click(function(){
+//            $("#canvasFirework").css({display:'none'});
+            randomNum = ranNumArr[arrPop];
+//            passDeg = nowDeg + passDeg;
+            nowDeg = parseInt(randomNum, 10); //从数组中取出的当前随机数
+            if(arrPop==0){
+                countDeg = nowDeg + 1800 ;   //从数组中取出的当前随机数+1800
+            }
+            else{
+                console.log("parseInt(ranNumArr[arrPop - 1]",parseInt(ranNumArr[arrPop - 1]));
+                countDeg = nowDeg + 1800 - parseInt(ranNumArr[arrPop - 1]);   //从数组中取出的当前随机数+1800
+            }
+            arrPop = arrPop + 1;
+            scrollDeg = countDeg + scrollDeg;  //最后显示的css样式角度
+            console.log(scrollDeg);
+            $(canvas).css(
+                {
+                    '-webkit-transform': 'rotate('+ scrollDeg + 'deg)',
+                    '-moz-transform': 'rotate('+ scrollDeg + 'deg)',
+                    '-o-transform': 'rotate('+ scrollDeg + 'deg)',
+                    '-ms-transform': 'rotate('+ scrollDeg + 'deg)',
+                    'transform': 'rotate('+ scrollDeg + 'deg)'
+                }
+            );
+            scrollCountDeg = scrollCountDeg + nowDeg;
+            console.log("nowDeg",nowDeg);
+//            realDeg = nowDeg + passDeg;  //当前旋转角度加之前旋转角度
+            console.log("realDeg",realDeg);
+//            realScroll = realDeg - Math.floor(realDeg/360)*360;  //现在旋转的角度相对与最开始状态的旋转角度
+            console.log("realScroll",realScroll);
+            if(nowDeg==83||nowDeg==90||nowDeg==108||nowDeg==216||nowDeg==270||nowDeg==36){
+                setTimeout(function(){alert("请重新摇奖！");},10000);
+            }
+            if(nowDeg>36&&nowDeg<83){
+                setTimeout(function(){alert("50元！");},10000);
+            }
+            if(nowDeg>83&&nowDeg<90){
+                setTimeout(function(){alert("100元！");},10000);
+                $("#canvasFirework").css({display:'block'});
+            }
+            if(nowDeg>90&&nowDeg<108){
+                setTimeout(function(){alert("8元！");},10000);
+            }
+            if(nowDeg>108&&nowDeg<216){
+                setTimeout(function(){alert("10元！");},10000);
+            }
+            if(nowDeg>216&&nowDeg<270){
+                setTimeout(function(){alert("20元！");},10000);
+            }
+            if(nowDeg>270&&nowDeg<360||nowDeg>0&&nowDeg<36){
+                setTimeout(function(){alert("30元！");},10000);
+            }
+            setTimeout(function(){ $("#btnStart").css({'display':"inline-block"});},10000)
+        });
+
+    });
+</script>
+</body>
+</html>

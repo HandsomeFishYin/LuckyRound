@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>摇奖转盘</title>
+
+    <link rel="stylesheet" href="stylesheets/Lucky.css"/>
+    <script src="js/jquery-2.1.1.min.js"></script>
+    <!--<script src="js/Lucky.js"></script>-->
+    <script src="js/Ernie1.js"></script>
+    <style>
+
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="arrow">
+        <div class="twinkling-circle-wrapper">
+            <div class="twinkling-circle"></div>
+            <div class="twinkling-innerCircle"></div>
+        </div>
+    </div>
+    <div id="section1">
+        <div class="piechart">
+            <div id="circleWrapper"></div>
+            <canvas id="piechart1" width="600" height="600"></canvas>
+        </div>
+        <ul id="luckyResult"></ul>
+        <p >总计：<span id="moneyCount">0</span>元</p>
+    </div>
+    <button id="btnStart">Start</button>
+    <!--<span id="criticalHit">暴击按钮</span>-->
+</div>
+<div class="maskWrapper">
+    <div class="global-table">
+        <div class="blobal-tableCell">
+            <div id="corver">
+                <div class="close-btn"></div>
+                <div style="font-size: 20px">请选择做俯卧撑个数</div>
+                <div id="title" class="title">0</div>
+                <div class="btns">
+                    <span id="play">开始</span>
+                    <span id="stop">停止</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    //aa就是从接口调用的1-360的随机数
+    var randomNum;  //随机出来1-360的随机数 string
+    var nowDeg = 0;   //随机出来1-360的随机数 int
+    var passDeg = 0;//上一轮随机数来1-360的随机数 int
+    var countDeg; //随机出来1-360的随机数 + 1800
+    var scrollDeg = 0; // + =countDeg
+    var scrollCountDeg = 0;  //+=nowDeg
+    var ranArr = []; //用于存放取出来的随机数
+    var arrPlus = 0; //用于存入随机数组的计数
+    var arrMin = 0;  //用于取出随机数组的计数
+    var realDeg = 0;
+    var realScroll = 0;
+    var money;
+    var color = ["#5c9bd4", "#ed7d31", "#a5a5a5", "#ffc000", "#5c9bd4", "#70ad47","#fe7e38","#4472c4","#5c9bd4","#a5a5a5","#ed7d31","#70ad47"];
+    var info = ["8元",      "10元",      "20元",   "30元",    "8元",     "12元",    "0元",    "50元",  "8元",   "20元","10元",    "12元"];
+    var centerX = 300;
+    var centerY = 300;
+    var data = [8, 10, 10, 4, 9, 10,7,3,9,10,10,10];
+    var canvas = document.getElementById("piechart1");
+    var ctx = canvas.getContext("2d");
+    var startPoint = Math.PI;
+    var moneyCountNum = 0;
+    var $startBtn = $("#btnStart");
+
+    function drawCircle() {//绘制扇形
+        for (var i = 0; i < data.length; i++) {
+            ctx.fillStyle = color[i];
+            ctx.strokeStyle = color[i];
+            ctx.beginPath();
+            ctx.moveTo(300, 300);  //x,y,r
+            ctx.arc(300, 300, 300, startPoint, startPoint - Math.PI * 2 * (data[i] / 100), true);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+            startPoint -= Math.PI * 2 * (data[i] / 100);
+        }
+    }
+    function createCirText() {
+        ctx.font = "Bold 20px Arial"; // 设置字体
+        ctx.textAlign = 'start';//文本水平对齐方式
+        ctx.textBaseline = 'middle';//文本垂直方向，基线位置
+        ctx.fillStyle = "#fff";// 设置填充颜色
+        var step = 0;//
+//        debugger;
+        for (var i = 0; i < data.length; i++) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.translate(centerX, centerY);//平移到圆心
+            var aa = Math.PI * 1 - Math.PI * 2 * (step / 100) - Math.PI * (data[i] / 100) / 1;
+            ctx.rotate(aa); //从时钟15点处开始旋转弧度i*step+step/2
+            step = step + data[i];
+            ctx.fillText(info[i], 125, 0);
+            ctx.restore();
+        }
+    }
+
+    drawCircle();
+    createCirText();
+
+    var luckyResult = $("#luckyResult");
+    var mask=$(".maskWrapper");
+    var moneyCount = $("#moneyCount");
+
+
+    $(function () {
+        $(".maskWrapper").hide();
+
+
+//            $.ajax({
+//                url: 'https://www.random.org/integers/?num=200&min=0&max=360&col=1&base=10&format=plain&rnd=new',
+//                type: 'get',
+//                async: true//使用同步的方式,true为异步方式
+//            }).success(function (data) {
+//                ranArr= data.split(/\n/gm).splice(0,200);
+//
+//
+//                $startBtn.click(clickEvent);
+//            }).error(function () {
+//                window.location='/testCreataProject/Lucky.html';
+//            });
+
+        var ranInterval =  setInterval(function(){
+            ranArr.push(Math.floor(Math.random()*360));
+        },5);
+
+        setTimeout(function(){
+            clearInterval(ranInterval)
+        },1000)
+
+        $startBtn.click(clickEvent);
+    });
+
+    function clickEvent() {
+
+//        debugger;
+        $("#corver").css({"display":"none"});
+        randomNum = ranArr[arrMin];
+        passDeg = nowDeg + passDeg;
+        nowDeg = parseInt(randomNum, 10); //最终旋转的角度
+        if(arrMin==0){
+            countDeg = nowDeg + 1800 ;   //从数组中取出的当前随机数+1800
+        }
+        else{
+//            console.log("parseInt(ranArr[arrMin - 1]",parseInt(ranArr[arrMin - 1]));
+            countDeg = nowDeg + 1800 - parseInt(ranArr[arrMin - 1]);   //从数组中取出的当前随机数+1800
+        }
+        arrMin = arrMin + 1;
+        scrollDeg = countDeg + scrollDeg;
+//        console.log(scrollDeg);
+        $(canvas).css(
+            {
+                '-webkit-transform': 'rotate(' + scrollDeg + 'deg)',
+                '-moz-transform': 'rotate(' + scrollDeg + 'deg)',
+                '-o-transform': 'rotate(' + scrollDeg + 'deg)',
+                '-ms-transform': 'rotate(' + scrollDeg + 'deg)',
+                'transform': 'rotate(' + scrollDeg + 'deg)'
+            }
+        );
+        scrollCountDeg = scrollCountDeg + nowDeg;
+//        console.log("nowDeg", nowDeg);
+        realDeg = nowDeg + passDeg;
+//        console.log("realDeg", realDeg);
+        realScroll = realDeg - Math.floor(realDeg / 360) * 360;
+//        console.log("realScroll", realScroll);
+        if (nowDeg == 18 || nowDeg == 54 || nowDeg == 90 || nowDeg == 119 || nowDeg == 155 || nowDeg == 191  || nowDeg == 205 || nowDeg == 238 || nowDeg == 274 || nowDeg == 299 || nowDeg == 310 || nowDeg == 342) {
+            setTimeout(function () {
+                luckyResult.append("<li>请重新摇奖</li>");
+            }, 15000);
+        }
+        if ((nowDeg > 342 && nowDeg <= 360)||(nowDeg >= 0 && nowDeg < 18)||(nowDeg > 155 && nowDeg < 191)) {
+            setTimeout(function () {
+                luckyResult.append("<li>20元</li>");
+                moneyCountNum = moneyCountNum + 20;
+                moneyCount.html(moneyCountNum);
+            }, 15000);
+        }
+        if ((nowDeg > 54 && nowDeg < 90)||(nowDeg > 238 && nowDeg < 274)) {
+            setTimeout(function () {
+                luckyResult.append("<li>12元</li>");
+                moneyCountNum = moneyCountNum + 12;
+                moneyCount.html(moneyCountNum);
+
+            }, 15000);
+        }
+        if (nowDeg > 299 && nowDeg < 310) {
+            setTimeout(function () {
+                luckyResult.append("<li>50元暴击！</li>");
+                moneyCountNum = moneyCountNum + 50;
+                moneyCount.html(moneyCountNum);
+            }, 15000);
+        }
+        if ((nowDeg > 90 && nowDeg < 119)||(nowDeg > 205 && nowDeg < 238)||(nowDeg > 310 && nowDeg < 342)) {
+            setTimeout(function () {
+                luckyResult.append("<li>8元</li>");
+                moneyCountNum = moneyCountNum + 8;
+                moneyCount.html(moneyCountNum);
+            }, 15000);
+        }
+        if (nowDeg > 191 && nowDeg < 205) {
+            setTimeout(function () {
+                luckyResult.append("<li>30元</li>");
+                moneyCountNum = moneyCountNum + 30;
+                moneyCount.html(moneyCountNum);
+            }, 15000);
+        }
+        if ((nowDeg > 18 && nowDeg < 54 )||(nowDeg > 119 && nowDeg < 155)) {
+            setTimeout(function () {
+                luckyResult.append("<li>10元</li>");
+                moneyCountNum = moneyCountNum + 10;
+                moneyCount.html(moneyCountNum);
+            }, 15000);
+        }
+        if (nowDeg > 274 && nowDeg < 299 ) {
+            setTimeout(function () {
+                luckyResult.append("<li>0元</li>");
+                moneyCountNum = moneyCountNum + 0;
+                moneyCount.html(moneyCountNum);
+                mask.fadeIn();
+                $("#corver").css({"display":"block"}).removeClass("pop-down").addClass("pop-up");
+            }, 15000);
+        }
+//        console.log('passDeg', passDeg);
+//            debugger;
+        $startBtn.attr({'disabled': "disabled"});
+        setTimeout(function () {
+            $startBtn.removeAttr("disabled");
+        }, 15000)
+    }
+
+
+var toggle = true;
+    $(document).on('keyup',function(e){
+        if(e.keyCode === 13 && toggle){
+            $startBtn.click();
+            $startBtn.unbind();
+            toggle = false;
+            setTimeout(function(){
+                $startBtn.bind("click",clickEvent);
+                toggle = true;
+            },15000);
+        }
+    });
+</script>
+</body>
+</html>
